@@ -1,0 +1,40 @@
+
+/* {
+	box-sizing: border-box;
+}
+*/
+body {
+	margin: 5px;
+}
+
+.toprow {
+	background-color: #A1A1A1;
+	padding: 1px;
+	/*display: table;*/
+	clear: both;
+}
+
+.row:after {
+	content: "";
+	display: table;
+	clear: both;
+}
+
+.column {
+	float: left;
+	/*border: 1px 1px;*/
+	padding: 10px;
+	box-sizing: border-box;
+}
+
+.column.side {
+	background-color: #F5F5F0;
+	width: 15%;
+}
+
+
+.column.middle {
+	background-color: #A121A2;
+	text-align: center;
+	width: 70%;
+}

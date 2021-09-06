@@ -1,0 +1,120 @@
+
+* {
+	box-sizing: border-box;
+	background-color: green;
+}
+
+body {
+	margin: 0;
+}
+
+@media screen and (max-width: 800px) {
+	iframe {
+		width: 30%;
+		height: 200px;
+	}
+	
+	/*header style */
+	.header {
+		text-align: center;
+	}
+	.row:after {
+	content: "";
+	display: table;
+	clear: both;
+	}
+	
+	/* použiti v <div class="row">
+					<div class="column">*/
+	
+	.column {
+		float: left;
+		padding: 10px;
+	}
+	
+	/*Levy a pravy sloupec*/
+	
+	.column.side {
+		width: 1%;
+	}
+	
+	/*centralni sloupec*/
+	
+	.column.middle {
+		text-align: center;
+		width: 98%;
+	}
+
+}
+
+.topmenu {
+	text-align: center;
+}
+
+/*header style */
+.header {
+	background-color: yellow;
+	padding: 20px;
+	text-align: center;
+}
+
+.row:after {
+	content: "";
+	display: table;
+	clear: both;
+}
+
+/* použiti v <div class="row">
+				<div class="column">*/
+
+.column {
+	float: left;
+	padding: 10px;
+}
+
+/*Levy a pravy sloupec*/
+
+.column.side {
+	width: 15%;
+}
+
+/*centralni sloupec*/
+
+.column.middle {
+	text-align: center;
+	width: 70%;
+}
+
+/*Použíti: <div class="row">
+				<div class="column side">
+				<div class="column middle">
+				<div class="column side">*/
+.footer {
+	font-size: small;
+/*	text-align: right;*/
+	float: right;
+	display: block;
+	margin: 5px 15px;
+}
+
+.text {
+	text-align: left;
+}
+/*
+iframe {
+		width: 60%;
+		height: 200px;
+}
+	*/	
+.text.contact {
+	display: block;
+	font-size: .67em;
+	margin-top: 2.33;
+	margin-bottom: 2.33;
+	
+}
+
+.text.intro {
+	display: block;
+	font-size: 1.32em;
+}
