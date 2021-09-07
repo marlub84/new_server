@@ -133,6 +133,8 @@ function sessCheckRow ($conn, $sess_var, &$result){
 	
 }
 
+/* check for working function */
+						    
 $conn = openDB();
 
 createTbl ($conn, 'raspberry');
