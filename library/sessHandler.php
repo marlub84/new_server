@@ -6,6 +6,8 @@
  * - db mysql - TODO
  */
  
+ include ('./library/db-mysql.php');
+ 
  class objSessionHandler extends SessionHandler {
 	 
 	 // methods
@@ -33,6 +35,14 @@
 	 }
 	 
 	 public function read($id) {
+		 // read data from database 
+		 $conn = openDB();
+		 $ret;
+		 if (sessheckRow($conn, $id, $ret )) {
+			 // row exist in DB, read session data
+			  
+		 }
+		 
 		 print "Read id $id \n";
 		 echo '<br>';
 		 
