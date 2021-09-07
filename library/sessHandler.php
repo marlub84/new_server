@@ -12,64 +12,74 @@
 	 
 	 // methods
 	 public function create_sid() {
-		 print 'session';
+		 
 		 return parent::create_sid();
 	 }
 	 
 	 public function open($sessPath, $sessName) {
-		 print "Open \n ";
-		 echo '<br>';
-		 print "sessPath $sessPath \n";
-		 echo '<br>';
-		 print "sessName $sessName \n";
-		 echo '<br>';
 		 
 		 return true;
 	 }
 	 
 	 public function close() {
-		 print "Close \n";
-		 echo '<br>';
 		 
+		 global $_SESSION;
+		 
+		 // check if session id was changed
+		 if (!empty($_SESSION['old_id'])) {
+			sessRmRow($_SESSION);
+			
+		 }
 		 return true;
 	 }
 	 
 	 public function read($id) {
-		 // read data from database 
-		 $conn = openDB();
-		 $ret;
-		 if (sessheckRow($conn, $id, $ret )) {
-			 // row exist in DB, read session data
-			  
-		 }
+		 // use global session variable 
+		 global $_SESSION;
 		 
-		 print "Read id $id \n";
-		 echo '<br>';
+		 // check if id exist in DB  
+		 $ret = sessCheckRow($id);
+		 
+		 // check if return more then one row - id from session 
+		 if (is_array($ret)) {
+			 //exist more then one session with the same id
+			 // TODO what next action ?
+		 } elseif ($ret == 0) {
+			 // any row 
+			 return '';
+		 } else {
+			 // one session id in DB
+			 // ok read data from DB
+			 if (sessReadData($ret, $_SESSION)) {
+				 // data read successfully
+			 }
+		 }
 		 
 		 return '';
 	 }
 	 
 	 public function write($id, $data) {
-		 print "Write :\n";
-		 echo '<br>';
-		 print "id $id \n";
-		 echo '<br>';
-		 print "data $data \n";
-		 echo '<br>';
+		 
+		 // use global variable
+		 global $_SESSION;
+		 // check if session id dosn`t in database
+		 $ret = sessCheckRow($id);
+		 if (!$ret){
+			 sessInRow($_SESSION);
+		 }else {
+			 //update data in DB
+		 }
 		 
 		 return true;
 	 }
 	 
 	 public function destroy($id) {
-		 print "destroy id $id \n";
-		 echo '<br>';
-		 
+
 		 return true;
 	 }
 	 
 	 public function gc($max_lifetime) {
-		 print "GC lifetime $max_lifetime ";
-		 echo '<br>';
+		 
 	 }
 	 
  } // end class

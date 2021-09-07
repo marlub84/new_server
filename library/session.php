@@ -122,7 +122,9 @@ class mySession {
 		if (session_status() != PHP_SESSION_ACTIVE) {
 			session_start();
 		}
-
+		// remember old id for removing from database
+		$_SESSION['old_id'] = $this->sessid;
+		
 		$newid = session_create_id();
 		
 		// check if new id was created
@@ -148,28 +150,13 @@ class mySession {
 	 * and set cookies 
 	 */
 	public function startSession() {
-		
+		ini_set('session.use_strict_mode', 1);
 		$handler = new objSessionHandler();
 		session_set_save_handler ($handler, true);
 		
-		
-		ini_set('session.use_strict_mode', 1);
 		session_start();
 		global $_SESSION;
-		/* 
-		 * calling GC for every request is waste of resources
-		 */
-		//touch($this->gc_time);
-		if (file_exists($this->gc_time)) {
-
-			if (filemtime($this->gc_time) < time() - $this->gc_periode) {
-				session_gc();
-				touch($this->gc_time);
-			} else {
-				
-				//touch($this->gc_time);
-			}
-		}
+		
 		$this->sessid = session_id();
 
 		//hash session id
@@ -179,24 +166,21 @@ class mySession {
 		$this->expire = time();
 		
 		// check if cookies and session 'sessid' variable are set 
-		if ((!isset($_COOKIE['mysessid'])) || !(isset($_SESSION['sessid']))) {
+		if ((!isset($_COOKIE['sess_id'])) || !(isset($_SESSION['sess_id']))) {
 			//prepare session parameters
-			$this->prepareParam('sessid', $this->hsessid);
+			$this->prepareParam('sess_id', $this->sessid);
 			$this->prepareParam('time_expire', $this->expire);
 			
 			// set session variable
 			$this->setSessParam();
-			//$this->setSessionVar($this->sess_param);
-			
-			//$this->setSessionVar('sessid', $this->hsessid);
-			//$this->setSessionVar('time_expire', $this->expire);
+
 			// set cookies 			
-			$this->setMyCookies('mysessid', $this->hsessid, $this->expire);
+			$this->setMyCookies('sess_id', $this->sessid, $this->expire);
 			
 		}else {
 			// cookies is set
 			// check if sessid and cookies is the same 
-			if ((isset($_SESSION['sessid'])) && ($_SESSION['sessid'] == $_COOKIE['mysessid'])) {
+			if ((isset($_SESSION['sess_id'])) && ($_SESSION['sess_id'] == $_COOKIE['sess_id'])) {
 				
 				// check expire time 
 				// if expire time is out create new session id 
@@ -214,7 +198,7 @@ class mySession {
 					$this->expire = time();
 					
 					//prepare session parameters
-					$this->prepareParam('sessid', $this->hsessid);
+					$this->prepareParam('sess_id', $this->sessid);
 					$this->prepareParam('time_expire', $this->expire);
 					
 					// set session variable
@@ -222,7 +206,7 @@ class mySession {
 					//$this->setSessionVar();
 					
 					// set new cookies 
-					$this->setMyCookies('mysessid', $this->hsessid, $this->expire);
+					$this->setMyCookies('sess_id', $this->sessid, $this->expire);
 				}
 				// id is ok and expire time is ok
 				// what next ?
@@ -231,7 +215,7 @@ class mySession {
 				// unexpected situation
 				session_destroy();
 				// delete cookies
-				setcookie('mysessid', "", time() - 360);
+				setcookie('sess_id', "", time() - 360);
 				// and start new session
 				session_start();
 				

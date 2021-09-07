@@ -12,13 +12,13 @@ function openDB () {
 		
 		// set the desired charset after estabishing a connection 
 		$conn->set_charset('utf8mb4');
-		printf ("Success... %s\n", $conn->host_info);
+		//printf ("Success open DB... %s\n", $conn->host_info);
 		return $conn;
 		
 	} catch (Exception $excep) {
 		echo 'Exception ', $excep->getMessage(), "\n";
 	}
-	
+
 	return 0;
 	 
  }
@@ -31,8 +31,8 @@ function openDB () {
  * 
  * Table 'session' :
  * ----------------------------------------------------------------------
- * | id | session_id | user (logged) | 
- * -----------------------------------
+ * | id | sess_id | user (logged) | expire_time |
+ * ----------------------------------------------
  */
 
 /* SQL query to create database 
@@ -51,7 +51,7 @@ function openDB () {
 /* SQL query to create table session */
 function createTbl () {
 	$conn = openDB();
-	$sql_query = "CREATE TABLE session (id int auto_increment PRIMARY KEY, sess_id char(64) NULL, user char(32);";
+	$sql_query = "CREATE TABLE session (id int auto_increment PRIMARY KEY, sess_id TINYTEXT, user TINYTEXT);";
 	if ($conn->query($sql_query)) {
 		printf ("Table 'session' was created...");
 	} else {
@@ -68,16 +68,18 @@ function createTbl () {
  * */ 
 function sessInRow ($sess_var) {
 	$conn = openDB();
-	if (sql_query = $conn->prepare ("INSERT INTO session (session_id, user) VALUE (?, ?)")) {
-		sql_query->bind_param('ss', $sess_var['sess_id'], $sess_var['user']);
-		if (!sql_query->execute()) {
+	if ($sql_query = $conn->prepare ("INSERT INTO session (sess_id, user) VALUE (?, ?)")) {
+		$sql_query->bind_param('ss', $sess_var['sess_id'], $sess_var['user']);
+		if (!$sql_query->execute()) {
 			// insert dat was`t successfull
+			$conn->close();
 			return false;
-		} else return true;
-		$sql_query->close;
+		} else {
+			$sql_query->close;
+			$conn->close();
+			return true;
+		}
 	}
-	
-	$conn->close();
 }
 
 /**
@@ -90,12 +92,13 @@ function sessRmRow ($sess_var) {
 	// check if sess_id exist in DB 
 	// remove the row from DB
 	$conn = openDB();
-	if ($sql_del = $conn->prepare("DELETE FROM session WHERE session_id = ?")) {
-		$sql_del->bind_param('i', $sess_var['sess_id');
+	if ($sql_del = $conn->prepare("DELETE FROM session WHERE sess_id = ?")) {
+		$sql_del->bind_param('s', $sess_var['old_id']);
 		$sql_del->execute();
+		$sql_query->close;
+		$conn->close();
 		// controll how meny row was delete
 		return $sql_del->affected_row;
-		$sql_query->close;
 	}
 
 	$conn->close();
@@ -104,17 +107,17 @@ function sessRmRow ($sess_var) {
 /**
  * Use this function to check if session id exist in database
  * 
- * @param mixed $sess_var 			The session parameters
- * @param reference array(int) &$result 	Number of row 
+ * @param mixed $sess_var 	The session parameters
+ * @return int 				return id from session table 
  * */
-function sessCheckRow ($sess_var, &$result){
+function sessCheckRow ($sess_id){
 	// check if exist in DB sess_id 
 	// if exist more than one use the array 
 	$conn = openDB();
-	if ($sql_query = $conn->prepare("SELECT id IN raspberry.session WHERE session_id = ?")) {
-		
-		$sql_query->bind_param('s̈́', $sess_var['sess_id']);
-		if (!sql_query->execute()) {
+	$result;
+	if ($sql_query = $conn->prepare("SELECT id FROM session WHERE sess_id = ?")) {
+		$sql_query->bind_param('s', $sess_id);
+		if (!$sql_query->execute()) {
 			// bad query ?
 		}
 		$sql_query->bind_result($id_sel);
@@ -125,7 +128,6 @@ function sessCheckRow ($sess_var, &$result){
 			$result = $id_sel;
 			$sql_query->close;
 			$conn->close();
-			return true;
 		} elseif ($sql_query->num_rows >= 1) {
 			$inc = 0;
 			while ($sql_query->fetch()) {
@@ -133,19 +135,18 @@ function sessCheckRow ($sess_var, &$result){
 			}
 			$sql_query->close;
 			$conn->close();
-			return true;
 		} else {
 			// row not exist
-			$sql_query->close;
+			//$sql_query->close;
 			$conn->close();
-			return false;
+			$result = 0;
 		}	
 	} else {
 		$sql_query->close;
 		$conn->close();
-		return false;
+		$result = 0;
 	}
-	
+	return $result;
 }
 
 /**
@@ -157,9 +158,10 @@ function sessCheckRow ($sess_var, &$result){
  * */
 function sessReadData($id, &$data) {
 	$conn = openDB();
-	if ($sql_query = $conn->prepre("SELECT session_id, user FROM session WHERE id = ?")) {
-		$sql_query->bind_param('ss', $sess_id, $username);
+	if ($sql_query = $conn->prepare("SELECT sess_id, user FROM session WHERE id = ?")) {
+		$sql_query->bind_param('s', $id);
 		$sql_query->execute();
+		$sql_query->bind_result($sess_id, $username);
 		$sql_query->store_result();
 		if ($sql_query->num_rows) {
 			$sql_query->fetch();
@@ -176,14 +178,15 @@ function sessReadData($id, &$data) {
 	$conn->close();
 	return false;
 }
-
+/*
 $conn = openDB();
 
-createTbl ($conn, 'raspberry');
+//createTbl()	;
+sessCheckRow("mysession");
 
 if ($conn) {
 	$conn->close();
 }
-	
+*/
 ?>
 
