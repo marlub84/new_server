@@ -108,7 +108,7 @@ class mySession {
 		
 		setcookie($name, $val, $cookie_expire - 3600);
 		// set cookies
-		if (!(setcookie($name, $val, $cookie_expire + 3600))) {
+		if (!(setcookie($name, $val, $cookie_expire + 360))) {
 			echo 'cookies not set';
 		}
 		
@@ -160,7 +160,7 @@ class mySession {
 		$this->sessid = session_id();
 
 		//hash session id
-		$this->hsessid = $this->myHash($this->sessid);
+		//$this->hsessid = $this->myHash($this->sessid);
 		
 		// set expire time 
 		$this->expire = time();
@@ -169,7 +169,7 @@ class mySession {
 		if ((!isset($_COOKIE['sess_id'])) || !(isset($_SESSION['sess_id']))) {
 			//prepare session parameters
 			$this->prepareParam('sess_id', $this->sessid);
-			$this->prepareParam('time_expire', $this->expire);
+			$this->prepareParam('expire_time', $this->expire);
 			
 			// set session variable
 			$this->setSessParam();
@@ -184,7 +184,7 @@ class mySession {
 				
 				// check expire time 
 				// if expire time is out create new session id 
-				if (!empty($_SESSION['time_expire']) && $_SESSION['time_expire'] < time() - 300) {
+				if (!empty($_SESSION['expire_time']) && $_SESSION['expire_time'] < time() - 300) {
 
 					// set new session id
 					$this->myRegenerateId();
@@ -199,7 +199,7 @@ class mySession {
 					
 					//prepare session parameters
 					$this->prepareParam('sess_id', $this->sessid);
-					$this->prepareParam('time_expire', $this->expire);
+					$this->prepareParam('expire_time', $this->expire);
 					
 					// set session variable
 					$this->setSessParam();

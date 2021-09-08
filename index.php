@@ -31,7 +31,7 @@ include ("./head.php");
 			</div>
 			<div class="column middle">
 				<?php
-				/*
+					/*
 					echo 'session - ';
 					print_r($_SESSION);
 					echo '<br>';

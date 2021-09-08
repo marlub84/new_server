@@ -30,6 +30,8 @@
 			sessRmRow($_SESSION);
 			
 		 }
+		 //delete session from database older 5 min
+		 sessRmOld();
 		 return true;
 	 }
 	 

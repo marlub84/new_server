@@ -31,8 +31,8 @@ function openDB () {
  * 
  * Table 'session' :
  * ----------------------------------------------------------------------
- * | id | sess_id | user (logged) | expire_time |
- * ----------------------------------------------
+ * | id | sess_id | user (logged) | expire_time | old_id |
+ * ------------------------------------------------------
  */
 
 /* SQL query to create database 
@@ -51,7 +51,8 @@ function openDB () {
 /* SQL query to create table session */
 function createTbl () {
 	$conn = openDB();
-	$sql_query = "CREATE TABLE session (id int auto_increment PRIMARY KEY, sess_id TINYTEXT, user TINYTEXT);";
+	$sql_query = "CREATE TABLE session (id int auto_increment PRIMARY KEY, sess_id TINYTEXT, user TINYTEXT, expire_time INT,
+										old_id TINYTEXT);";
 	if ($conn->query($sql_query)) {
 		printf ("Table 'session' was created...");
 	} else {
@@ -68,8 +69,8 @@ function createTbl () {
  * */ 
 function sessInRow ($sess_var) {
 	$conn = openDB();
-	if ($sql_query = $conn->prepare ("INSERT INTO session (sess_id, user) VALUE (?, ?)")) {
-		$sql_query->bind_param('ss', $sess_var['sess_id'], $sess_var['user']);
+	if ($sql_query = $conn->prepare ("INSERT INTO session (sess_id, user, expire_time, old_id) VALUE (?, ?, ?, ?)")) {
+		$sql_query->bind_param('ssis', $sess_var['sess_id'], $sess_var['user'], $sess_var['expire_time'], $sess_var['old_id']);
 		if (!$sql_query->execute()) {
 			// insert dat was`t successfull
 			$conn->close();
@@ -89,10 +90,9 @@ function sessInRow ($sess_var) {
  * @return: int 			Number of deleted row(s)
  * */
 function sessRmRow ($sess_var) {
-	// check if sess_id exist in DB 
 	// remove the row from DB
 	$conn = openDB();
-	if ($sql_del = $conn->prepare("DELETE FROM session WHERE sess_id = ?")) {
+	if ($sql_del = $conn->prepare("DELETE FROM session WHERE old_id = ?")) {
 		$sql_del->bind_param('s', $sess_var['old_id']);
 		$sql_del->execute();
 		$sql_query->close;
@@ -101,6 +101,25 @@ function sessRmRow ($sess_var) {
 		return $sql_del->affected_row;
 	}
 
+	$conn->close();
+}
+
+/** 
+ * Use this function to delete older session
+ * 
+ * @param no parametrs need 
+ * @return int 				Number of deleted row(s)
+ * */
+function sessRmOld () {
+	$conn = openDB();
+	$current_time = time() - 200;
+	if ($sql_query = $conn->prepare("DELETE FROM session WHERE expire_time <= ?")) {
+		$sql_query->bind_param('i', $current_time);
+		$sql_query->execute();
+		$sql_query->close();
+		$conn->close();
+		return $sql_query->affected_rows;
+	}
 	$conn->close();
 }
 
@@ -158,15 +177,17 @@ function sessCheckRow ($sess_id){
  * */
 function sessReadData($id, &$data) {
 	$conn = openDB();
-	if ($sql_query = $conn->prepare("SELECT sess_id, user FROM session WHERE id = ?")) {
+	if ($sql_query = $conn->prepare("SELECT sess_id, user, expire_time, old_id FROM session WHERE id = ?")) {
 		$sql_query->bind_param('s', $id);
 		$sql_query->execute();
-		$sql_query->bind_result($sess_id, $username);
+		$sql_query->bind_result($sess_id, $username, $sess_expire, $sess_old);
 		$sql_query->store_result();
 		if ($sql_query->num_rows) {
 			$sql_query->fetch();
 			$data['sess_id'] = $sess_id;
 			$data['username'] = $username;
+			$data['expite_time'] = $sess_expire;
+			$data['old_id'] = $sess_old;
 			$sql_query->close();
 		} else {
 			return false;
@@ -181,8 +202,8 @@ function sessReadData($id, &$data) {
 /*
 $conn = openDB();
 
-//createTbl()	;
-sessCheckRow("mysession");
+createTbl()	;
+//sessCheckRow("mysession");
 
 if ($conn) {
 	$conn->close();
