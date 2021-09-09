@@ -1,15 +1,12 @@
 <?php
 
 include_once ('./library/session.php');
+include ('./env.php');
+
 
 $mysession = new mySession();
 $mysession->startSession();
-// test set param
-//$mysession->prepareParam('myparam', 'myval');
-//$mysession->setSessParam();
 
-// test function 
-//echo session_decode($_SESSION);
 
 // insert html header include doctype
 include ("./head.php");
@@ -31,13 +28,14 @@ include ("./head.php");
 			</div>
 			<div class="column middle">
 				<?php
-					/*
+					
 					echo 'session - ';
 					print_r($_SESSION);
 					echo '<br>';
 					print_r($_COOKIE);
 					echo '<br>';
-					*/
+					
+					//phpinfo();
 				?>
 			</div>
 			<div class="column side">

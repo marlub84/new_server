@@ -76,7 +76,7 @@ function sessInRow ($sess_var) {
 			$conn->close();
 			return false;
 		} else {
-			$sql_query->close;
+			$sql_query->close();
 			$conn->close();
 			return true;
 		}
@@ -95,7 +95,7 @@ function sessRmRow ($sess_var) {
 	if ($sql_del = $conn->prepare("DELETE FROM session WHERE old_id = ?")) {
 		$sql_del->bind_param('s', $sess_var['old_id']);
 		$sql_del->execute();
-		$sql_query->close;
+		//$sql_query->close;
 		$conn->close();
 		// controll how meny row was delete
 		return $sql_del->affected_row;
@@ -116,11 +116,31 @@ function sessRmOld () {
 	if ($sql_query = $conn->prepare("DELETE FROM session WHERE expire_time <= ?")) {
 		$sql_query->bind_param('i', $current_time);
 		$sql_query->execute();
-		$sql_query->close();
+		//$sql_query->close();
 		$conn->close();
 		return $sql_query->affected_rows;
 	}
 	$conn->close();
+}
+
+function sessUpId ($data) {
+	$conn = openDB();
+	$sql = $conn->prepare("UPDATE session SET sess_id = ? WHERE sess_id = ?");
+	$sql->bind_param('ss', $data['new_id'], $data['old_id']);
+	$sql->execute();
+	$conn->close();
+	return $sql->affected_rows;
+	
+}
+
+function sessUpTm ($data) {
+	$conn = openDB();
+	$sql = $conn->prepare("UPDATE session SET expire_time = ? WHERE sess_id = ?");
+	$sql->bind_param('is', $data['expire_time'], $data['sess_id']);
+	$sql->execute();
+	$conn->close();
+	return $sql->affected_rows;
+	
 }
 
 /**
@@ -129,13 +149,13 @@ function sessRmOld () {
  * @param mixed $sess_var 	The session parameters
  * @return int 				return id from session table 
  * */
-function sessCheckRow ($sess_id){
+function sessCheckRow ($id){
 	// check if exist in DB sess_id 
 	// if exist more than one use the array 
 	$conn = openDB();
 	$result;
 	if ($sql_query = $conn->prepare("SELECT id FROM session WHERE sess_id = ?")) {
-		$sql_query->bind_param('s', $sess_id);
+		$sql_query->bind_param('s', $id);
 		if (!$sql_query->execute()) {
 			// bad query ?
 		}
@@ -145,7 +165,7 @@ function sessCheckRow ($sess_id){
 		if ($sql_query->num_rows == 1) {
 			$sql_query->fetch();
 			$result = $id_sel;
-			$sql_query->close;
+			$sql_query->close();
 			$conn->close();
 		} elseif ($sql_query->num_rows >= 1) {
 			$inc = 0;
@@ -177,7 +197,7 @@ function sessCheckRow ($sess_id){
  * */
 function sessReadData($id, &$data) {
 	$conn = openDB();
-	if ($sql_query = $conn->prepare("SELECT sess_id, user, expire_time, old_id FROM session WHERE id = ?")) {
+	if ($sql_query = $conn->prepare("SELECT sess_id, user, expire_time, old_id FROM session WHERE sess_id = ?")) {
 		$sql_query->bind_param('s', $id);
 		$sql_query->execute();
 		$sql_query->bind_result($sess_id, $username, $sess_expire, $sess_old);
@@ -185,8 +205,8 @@ function sessReadData($id, &$data) {
 		if ($sql_query->num_rows) {
 			$sql_query->fetch();
 			$data['sess_id'] = $sess_id;
-			$data['username'] = $username;
-			$data['expite_time'] = $sess_expire;
+			$data['user'] = $username;
+			$data['expire_time'] = $sess_expire;
 			$data['old_id'] = $sess_old;
 			$sql_query->close();
 		} else {
@@ -210,4 +230,3 @@ if ($conn) {
 }
 */
 ?>
-

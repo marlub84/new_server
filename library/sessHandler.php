@@ -8,16 +8,31 @@
  
  include ('./library/db-mysql.php');
  
- class objSessionHandler extends SessionHandler {
+ class objSessionHandler implements SessionHandlerInterface, SessionUpdateTimestampHandlerInterface {
 	 
 	 // methods
-	 public function create_sid() {
+	 public function validateId($key) {
 		 
-		 return parent::create_sid();
+	 }
+	 public function updateTimestamp($key, $val) {
+		 
+	 }
+	 
+	 public function create_sid() {
+		//echo 'create id';
+		 $tab = 'abcdefghijklmnoprstuvwxyz1234567890+ABCDEFGHIJKLMNOPRSTUVWXYZ.';
+		$range = strlen($tab) - 1;
+		$string = '';
+		
+		for ($a = 0; $a <= 32; $a++) {
+			$ret = rand(0, $range);
+			$string .= $tab[$ret];
+		}
+		 return $string;//parent::create_sid();
 	 }
 	 
 	 public function open($sessPath, $sessName) {
-		 
+
 		 return true;
 	 }
 	 
@@ -25,51 +40,44 @@
 		 
 		 global $_SESSION;
 		 
-		 // check if session id was changed
-		 if (!empty($_SESSION['old_id'])) {
-			sessRmRow($_SESSION);
-			
-		 }
-		 //delete session from database older 5 min
-		 sessRmOld();
 		 return true;
 	 }
 	 
 	 public function read($id) {
 		 // use global session variable 
 		 global $_SESSION;
-		 
+
 		 // check if id exist in DB  
-		 $ret = sessCheckRow($id);
-		 
-		 // check if return more then one row - id from session 
-		 if (is_array($ret)) {
-			 //exist more then one session with the same id
-			 // TODO what next action ?
-		 } elseif ($ret == 0) {
-			 // any row 
-			 return '';
-		 } else {
-			 // one session id in DB
-			 // ok read data from DB
-			 if (sessReadData($ret, $_SESSION)) {
-				 // data read successfully
-			 }
+		 if (!$ret = sessCheckRow($id)) {
+			// insert new session
+			$_SESSION['sess_id'] = $id;
+			$_SESSION['expire_time'] = time();
+			$_SESSION['user'] = 'guest';
+			$_SESSION['old_id'] = '';
+			sessInRow($_SESSION);
+			$data = session_encode();
+		 }else {
+			 sessReadData($id, $_SESSION);
+			 $data = session_encode();
 		 }
 		 
-		 return '';
+		 if (!isset($data)) $data = '';
+		 return $data;
 	 }
 	 
 	 public function write($id, $data) {
-		 
 		 // use global variable
 		 global $_SESSION;
+		 session_decode($data);
 		 // check if session id dosn`t in database
 		 $ret = sessCheckRow($id);
-		 if (!$ret){
-			 sessInRow($_SESSION);
-		 }else {
-			 //update data in DB
+		 if ($ret) {
+			 // update expire time
+			 sessUpTm($_SESSION);
+		 }
+		 if (isset($_SESSION['old_id'])) {
+			 sessUpId($_SESSION);
+			 unset($_SESSION['old_id']);
 		 }
 		 
 		 return true;
@@ -87,4 +95,3 @@
  } // end class
 
 ?>
-
